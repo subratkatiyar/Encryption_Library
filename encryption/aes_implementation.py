@@ -30,29 +30,43 @@ from Crypto.Hash import SHA256
 In AES, the password can only be of 16, 24 or 32 bytes.
 So, we will use the SHA 256 to hash the key into a 32 byte value.
 '''
-password = input("Enter Password")
-hash_obj = SHA256.new(password.encode('utf-8'))
-hkey = hash_obj.digest()
+# password = input("Enter Password")
+# hash_obj = SHA256.new(password.encode('utf-8'))
+# hkey = hash_obj.digest()
+
+# Using a defualt password.
+
 
 # hkey will be of 32 length.
-def encrypt(info):
+def encrypt(info, passcode = "*"):
     msg = info
     BLOCK_SIZE = 16
     PAD = '*'
+    password = passcode
+    hash_obj = SHA256.new(password.encode('utf-8'))
+    hkey = hash_obj.digest()
     padding = lambda x:x+ (BLOCK_SIZE-len(x)%BLOCK_SIZE) * PAD
     cipher = AES.new(hkey, AES.MODE_ECB)
     result = cipher.encrypt(padding(msg).encode('utf-8'))
     return result
 
-def decrypt(info):
+def decrypt(info, passcode = "*"):
     msg = info
     PAD = '*'
+    password = passcode
+    hash_obj = SHA256.new(password.encode('utf-8'))
+    hkey = hash_obj.digest()
+
     decipher = AES.new(hkey,AES.MODE_ECB)
     decipher_text = decipher.decrypt(msg).decode('utf-8')
+
     pad_index = decipher_text.find(PAD)
     result = decipher_text[:pad_index]
     return result
 # Encrypting my name.
-print("Encrypted Text",encrypt("Subrat***"))
+# a = "subrat"
+# b = encrypt(a)
+# print("Encrypted Text",b)
+# print(type(b))
 # Decrypting my name
-print("Decrypted Text",decrypt(encrypt("Subrat***")))
+# print("Decrypted Text",decrypt(b))
