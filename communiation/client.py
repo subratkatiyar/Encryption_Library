@@ -239,4 +239,4 @@ class GUI:
             break
 
 # create a GUI class object
-# g = GUI()
+g = GUI()
