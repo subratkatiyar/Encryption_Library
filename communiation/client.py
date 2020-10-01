@@ -12,7 +12,7 @@ from aes_implementation import *
 
 
 HEADER = 64
-PORT = 5050
+PORT = 1234
 SERVER = socket.gethostbyname(socket.gethostname())
 ADDRESS = (SERVER, PORT)
 FORMAT = "utf-8"
@@ -95,6 +95,8 @@ class GUI:
 
         self.go.place(relx = 0.4,
                       rely = 0.55)
+        # self.Window.bind('<Return>',.invoke)
+        # self.Window.bind('<Return>', lambda event=None:  self.go.invoke())
         self.Window.mainloop()
 
     def goAhead(self, name, private_key):
@@ -239,4 +241,4 @@ class GUI:
             break
 
 # create a GUI class object
-# g = GUI()
+g = GUI()
