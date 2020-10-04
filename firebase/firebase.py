@@ -49,7 +49,7 @@ def create_user():
 
     try:
         currentUser = firebaseAuth.create_user_with_email_and_password(
-            email, password, name)
+            email, password)
 
         userID = currentUser["localId"]
         print('Signup Success')
@@ -72,11 +72,11 @@ def login_user():
     global userID
 
     try:
-        # email = input('\nEnter your email: ')
-        # password = input('Enter your password: ')
+        email = input('\nEnter your email: ')
+        password = input('Enter your password: ')
 
         currentUser = firebaseAuth.sign_in_with_email_and_password(
-            'subrat@gmail.com', 'subrat123')
+            email, password)
 
         userID = currentUser["localId"]
 
