@@ -1,6 +1,6 @@
 # Requirements.
 
-pip packages
+pip packages (neccessary)
 
 ```
 pycryptodome
