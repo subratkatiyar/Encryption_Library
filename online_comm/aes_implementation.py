@@ -1,8 +1,8 @@
-"""
+'''
 AES uses 16, 24 or 32 bytes.
 1.Electronic Code Block.
 ~~~~~~~~~~~~~~~~~~~~~~
-Main problem faced in this implementation is similar text will have similar
+Main problem faced in this implementaion is similar text will have similar
 cypher text.
 
 2.Cypher Block Chaining Mode.
@@ -22,11 +22,11 @@ Step-1 : Pairing.
         Output:
             Test Input******
 
-"""
+'''
 
 from Crypto.Cipher import AES
 from Crypto.Hash import SHA256
-# import base64
+import base64
 from Crypto import Random
 
 '''
@@ -37,7 +37,7 @@ So, we will use the SHA 256 to hash the key into a 32 byte value.
 # hash_obj = SHA256.new(password.encode('utf-8'))
 # hkey = hash_obj.digest()
 
-# Using a default password.
+# Using a defualt password.
 
 
 # hkey will be of 32 length.
