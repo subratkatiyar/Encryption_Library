@@ -35,13 +35,12 @@ firebaseDB = firebase.database()
 firebaseAuth = firebase.auth()
 cipher = _aes.AESCipher('password')
 
-CREATED_BY = ''
-CHATROOM_NAME = ''
-
 
 class Auth:
     currentUser = None
     userID = None
+    CREATED_BY = ''
+    CHATROOM_NAME = ''
 
     def create_user(self):
 
@@ -100,7 +99,6 @@ user_auth = Auth()
 
 
 def create_chat_room():
-    global CHATROOM_NAME
     length = 0
 
     chatroom_id = uuid.uuid4()
@@ -124,12 +122,12 @@ def create_chat_room():
         "created_name": user_auth.currentUser['displayName']
     }
 
-    CHATROOM_NAME = f'chatroom_{length + 1}'
+    user_auth.CHATROOM_NAME = f'chatroom_{length}'
 
     try:
-        firebaseDB.child('chat_rooms').child(CHATROOM_NAME).child("details").set(data)
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child("details").set(data)
 
-        firebaseDB.child('chat_rooms').child(CHATROOM_NAME).child('attendees').child(user_auth.userID).set(
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(user_auth.userID).set(
             {
                 'name': user_auth.currentUser['displayName'],
                 'joined_at': datetime.now().timestamp(),
@@ -144,8 +142,6 @@ def create_chat_room():
 
 
 def join_chat_room():
-    global CREATED_BY
-    global CHATROOM_NAME
     flag = 0
 
     def get_password(_room):
@@ -171,11 +167,11 @@ def join_chat_room():
             if chatroom_id == room.val()['details']['chatroomID']:
                 flag = 1
 
-                CREATED_BY = room.val()['details']['created_name']
+                user_auth.CREATED_BY = room.val()['details']['created_name']
                 get_password(_room=room)
-                CHATROOM_NAME = room.key()
+                user_auth.CHATROOM_NAME = f"{room.key()}"
 
-                firebaseDB.child('chat_rooms').child(CHATROOM_NAME).child('attendees').child(
+                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
                     user_auth.userID).set(
                     {
                         'name': user_auth.currentUser['displayName'],
