@@ -1,8 +1,9 @@
 from fireDatabase import user_auth, create_chat_room, join_chat_room
-from firebaseChats import FirebaseChats
+from firebaseChats import chatsObj, receive_thread, send_thread
+import threading
+import multiprocessing
 
 current_user = None
-chatsObj = FirebaseChats()
 
 
 # User Authentication (Login/Signup)
@@ -28,21 +29,22 @@ def join_chatroom():
     print('\n\n1. Create chat room \n2. Join chat room')
     chat_type = int(input())
 
-    try:
-        if chat_type == 1:
-            create_chat_room()
+    if chat_type == 1:
+        create_chat_room()
 
-        else:
-            join_chat_room()
+    else:
+        join_chat_room()
 
-        print('\nEnter q/Q to quit anytime')
-        while True:
-            chatsObj.send_chat()
-            chatsObj.receive_chat()
-
-    except Exception as e:
-        print(f'Main Error: {e}')
+    print('\nEnter q/Q to quit anytime')
+    receive_thread.start()
+    send_thread.start()
 
 
-authenticate_user()
-join_chatroom()
+# 98760cb2-71ba-417b-8065-088f244879ee
+
+if __name__ == '__main__':
+    authenticate_user()
+    join_chatroom()
+
+    # multiprocessing.Process(target=receive_chat()).start()
+    # multiprocessing.Process(target=send_chat()).start()
