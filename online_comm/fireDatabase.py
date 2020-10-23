@@ -42,11 +42,11 @@ class Auth:
     CREATED_BY = ''
     CHATROOM_NAME = ''
 
-    def create_user(self):
+    def create_user(self, name, email, password):
 
-        name = input('\nEnter name: ')
-        email = input('Enter your email: ')
-        password = input('Enter your password: ')
+        # name = input('\nEnter name: ')
+        # email = input('Enter your email: ')
+        # password = input('Enter your password: ')
         # re_password = input('Re-enter password: ')
 
         # if password != re_password:
@@ -55,7 +55,7 @@ class Auth:
         try:
             # TODO remove name before pushing
             self.currentUser = firebaseAuth.create_user_with_email_and_password(
-                email, password)
+                name, email, password)
 
             self.userID = self.currentUser["localId"]
             print('Signup Success')
@@ -75,10 +75,10 @@ class Auth:
             self.create_user()
             # exit(0)
 
-    def login_user(self):
+    def login_user(self, email, password):
         try:
-            email = input('\nEnter your email: ')
-            password = input('Enter your password: ')
+            # email = input('\nEnter your email: ')
+            # password = input('Enter your password: ')
 
             self.currentUser = firebaseAuth.sign_in_with_email_and_password(
                 email, password)

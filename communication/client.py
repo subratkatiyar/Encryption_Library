@@ -1,10 +1,7 @@
-import os
 import socket
 import threading
 from tkinter import *
-from tkinter import font
-from tkinter import ttk
-from aes_implementation import AESCipher
+import aes_implementation as _aes
 
 # cwd = os.getcwd()
 # print(os.path.dirname(path))
@@ -17,12 +14,11 @@ ADDRESS = (SERVER, PORT)
 FORMAT = "utf-8"
 PRIVATE_KEY = ""
 
-cipher = AESCipher()
 
 # Create a new client socket
 # and connect to the server
 client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-client.connect(ADDRESS)
+# client.connect(ADDRESS)
 
 
 # GUI class for the chat
@@ -212,7 +208,7 @@ class GUI:
         while True:
             try:
                 message = client.recv(1024)  # .decode(FORMAT)
-                message = cipher.decrypt(message, PRIVATE_KEY)
+                message = _aes.decrypt(message, PRIVATE_KEY)
                 self.textCons.config(state=NORMAL)
                 self.textCons.insert(END, message + "\n")
                 self.textCons.config(state=DISABLED)
@@ -232,7 +228,7 @@ class GUI:
         self.textCons.config(state=DISABLED)
         while True:
             message = f"{self.name}: {self.msg}"
-            message = cipher.encrypt(message, PRIVATE_KEY)
+            message = _aes.encrypt(message, PRIVATE_KEY)
             msg_length = len(message)
             send_length = str(msg_length).encode(FORMAT)
             send_length += b' ' * (HEADER - len(send_length))
