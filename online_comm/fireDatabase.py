@@ -1,8 +1,10 @@
-import pyrebase
-import uuid
 from datetime import datetime
+from random import randint
+
+import pyrebase
+
 import aes_implementation as _aes
-import threading
+from variables import Variables
 
 # After storageBucket are not necessary
 firebaseConfig = {
@@ -15,6 +17,16 @@ firebaseConfig = {
     "appId": "1:779469889144:web:41527aa0d5703701d6578d",
     "measurementId": "G-WGLXHL70KQ"
 }
+
+# firebaseConfig = {
+#     "apiKey": "AIzaSyCqwbsfRbgcoQMnnvz4cHQbjZA7QU8AfuI",
+#     "authDomain": "temp-encrypt-chat.firebaseapp.com",
+#     "databaseURL": "https://temp-encrypt-chat.firebaseio.com",
+#     "projectId": "temp-encrypt-chat",
+#     "storageBucket": "temp-encrypt-chat.appspot.com",
+#     "messagingSenderId": "712042090913",
+#     "appId": "1:712042090913:web:904aaf1f6a7818676d3be0"
+#   }
 
 # Parameters for currentUser:
 '''
@@ -40,152 +52,138 @@ class Auth:
     currentUser = None
     userID = None
     CREATED_BY = ''
-    CHATROOM_NAME = ''
+    CHATROOM_ID = ''
 
-    def create_user(self, name, email, password):
+    def create_user(self, email, password, name):
+        # TODO remove name before pushing
+        self.currentUser = firebaseAuth.create_user_with_email_and_password(email, password, name)
 
-        # name = input('\nEnter name: ')
-        # email = input('Enter your email: ')
-        # password = input('Enter your password: ')
-        # re_password = input('Re-enter password: ')
+        self.userID = self.currentUser["localId"]
+        print('Signup Success')
 
-        # if password != re_password:
-        #     raise Exception("passwords do not match")
+        data = {
+            'userId': self.userID,
+            'name': name,
+            'email': self.currentUser['email'],
+            'profileIndex': randint(1, 7)
+        }
 
-        try:
-            # TODO remove name before pushing
-            self.currentUser = firebaseAuth.create_user_with_email_and_password(
-                name, email, password)
+        Variables.userData = data
 
-            self.userID = self.currentUser["localId"]
-            print('Signup Success')
+        firebaseDB.child('users').child(f"{name}").set(data)
 
-            data = {
-                'userId': self.userID,
-                'name': name,
-                'email': self.currentUser['email'],
-            }
-
-            firebaseDB.child('users').child(f"{name}").set(data)
-
-            return self.currentUser
-
-        except Exception as e:
-            print(f'Error: {e}')
-            self.create_user()
-            # exit(0)
+        return self.currentUser
 
     def login_user(self, email, password):
-        try:
-            # email = input('\nEnter your email: ')
-            # password = input('Enter your password: ')
+        self.currentUser = firebaseAuth.sign_in_with_email_and_password(email, password)
+        self.userID = self.currentUser["localId"]
 
-            self.currentUser = firebaseAuth.sign_in_with_email_and_password(
-                email, password)
+        Variables.userData = firebaseDB.child('users').child(self.currentUser['displayName']).get().val()
 
-            self.userID = self.currentUser["localId"]
+        print('Login Success')
 
-            print('Login Success')
-
-            return self.currentUser
-
-        except Exception as e:
-            print(f'Error: {e}')
-            self.login_user()
-            # exit(0)
+        return self.currentUser
 
 
 user_auth = Auth()
 
 
-def create_chat_room():
+def create_chat_room(chatroom_id='', chatroom_key=''):
     length = 0
 
-    chatroom_id = uuid.uuid4()
-    print(f'\nChat room ID: {chatroom_id}')
-
-    chatroom_key = input('Enter new password: ')
     encrypted_chatroom_key = cipher.encrypt(chatroom_key)
 
     all_rooms = firebaseDB.child('chat_rooms').get()
     if all_rooms is not None:
         for room in all_rooms.each():
             length = length + 1
-            # if chatroom_id == room.val()['chatroomID']:
-            #     print('Chatroom already exists')
-            #     create_chat_room()
+            if chatroom_id == room.val()['details']['chatroomID']:
+                raise Exception('CHATROOM_EXISTS')
 
     data = {
-        "chatroomID": str(chatroom_id),
+        "chatroomID": chatroom_id,
         "encrypted_chatroom_key": encrypted_chatroom_key.hex(),
         "created_userID": user_auth.userID,
         "created_name": user_auth.currentUser['displayName']
     }
 
-    user_auth.CHATROOM_NAME = f'chatroom_{length}'
+    user_auth.CHATROOM_ID = f'chatroom_{length}'
 
     try:
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child("details").set(data)
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child("details").set(data)
 
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(user_auth.userID).set(
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').set(
             {
-                'name': user_auth.currentUser['displayName'],
-                'joined_at': datetime.now().timestamp(),
+                'msg': "",
+                'user': "dummy",
             }
         )
 
-        return chatroom_id
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(user_auth.userID).set(
+            {
+                'name': user_auth.currentUser['displayName'],
+                'joined_at': datetime.now().timestamp(),
+                'status': 'online'
+            }
+        )
 
-    except Exception as e:
-        print('create chatroom upload Error:', e)
-        create_chat_room()
+        return data
+
+    except Exception:
+        raise Exception('ERROR_UPLOAD_DATA')
 
 
-def join_chat_room():
+def join_chat_room(chatroom_id, chatroom_password):
     flag = 0
 
+    # Function
     def get_password(_room):
         encrypted_chatroom_key = _room.val()['details']['encrypted_chatroom_key']
-
-        chatroom_password = input('\nEnter chatroom password: ')
-        # decrypt_key = input('Enter key to decrypt: ')      # password
-
         decrypted_password = cipher.decrypt(bytes.fromhex(encrypted_chatroom_key))
 
         if chatroom_password == decrypted_password:
             print('success join')
         else:
-            print("Wrong password")
-            get_password(_room=_room)
+            raise Exception('INVALID_CHATROOM_PASSWORD')
 
-    try:
-        chatroom_id = input('\nEnter chatroom ID: ')
+    # End Function
 
-        all_rooms = firebaseDB.child('chat_rooms').get()
+    all_rooms = firebaseDB.child('chat_rooms').get()
 
-        for room in all_rooms.each():
-            if chatroom_id == room.val()['details']['chatroomID']:
-                flag = 1
+    for room in all_rooms.each():
+        if chatroom_id == room.val()['details']['chatroomID']:
+            flag = 1
+            print(flag)
 
-                user_auth.CREATED_BY = room.val()['details']['created_name']
-                get_password(_room=room)
-                user_auth.CHATROOM_NAME = f"{room.key()}"
+            user_auth.CREATED_BY = room.val()['details']['created_name']
+            get_password(_room=room)
+            user_auth.CHATROOM_ID = f"{room.key()}"
 
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
+            try:
+                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
                     user_auth.userID).set(
                     {
                         'name': user_auth.currentUser['displayName'],
                         'joined_at': datetime.now().timestamp(),
+                        'status': 'online',
                     }
                 )
 
-                return chatroom_id
+                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').set(
+                    {
+                        'msg': "",
+                        'user': "dummy",
+                    }
+                )
 
-        if flag == 0:
-            print("chatroom doesn't exist")
-            join_chat_room()
+                data = {
+                    'chatroomID': user_auth.CHATROOM_ID,
+                    'created_name': user_auth.CREATED_BY,
+                    'created_userID': room.val()['details']['created_userID']
+                }
+                return data
+            except Exception:
+                raise Exception('ERROR_JOINING_CHATROOM')
 
-    except Exception as e:
-        print(f'Error: {e}')
-        join_chat_room()
-        # exit(0)
+    if flag == 0:
+        raise Exception('CHATROOM_NOT_EXIST')
