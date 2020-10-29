@@ -1,3 +1,4 @@
+import sys
 import tkinter as tk
 from tkinter import messagebox
 
@@ -51,20 +52,43 @@ class StartApp(tk.Tk):
 
     def show_frame(self, cont):
         frame = self.frames[cont]
+
         menubar = frame.menuBar(self)
         self.configure(menu=menubar)
+
+        button, is_send = frame.getBindButton()
+        if button is not None:
+            if is_send:
+                self.bind('<Return>', lambda *args: None)
+                self.bind('<Control-Return>', lambda event=None: button.invoke())
+            else:
+                self.bind('<Control-Return>', lambda *args: None)
+                self.bind('<Return>', lambda event=None: button.invoke())
+        else:
+            self.bind('<Return>', lambda *args: None)
+            self.bind('<Control-Return>', lambda *args: None)
+
         frame.tkraise()
 
-    def on_closing(self):
+    def on_closing(self, del_temp=True):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
-            if user_auth.CHATROOM_ID != '':
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
-                    user_auth.userID).remove()
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').remove()
-
-            Variables.threadFlag = True
-            Variables.receive_thread.join()
             self.destroy()
+            if user_auth.CHATROOM_ID != 'chatroom_0':
+                if del_temp:
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
+                        user_auth.userID).update({'status': 'offline'})
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').remove()
+                else:
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
+                        user_auth.userID).update({'status': 'offline'})
+
+                Variables.threadFlag = True
+                Variables.receive_thread.join()
+                print('msg joined')
+                # Variables.getAttendees_thread.join()        # TODO not joined
+                print('attendee joined')
+                print('ended')
+                sys.exit()
 
 
 if __name__ == '__main__':

@@ -5,6 +5,7 @@ import pyrebase
 
 import aes_implementation as _aes
 from variables import Variables
+from master_key import master_key
 
 # After storageBucket are not necessary
 firebaseConfig = {
@@ -18,41 +19,17 @@ firebaseConfig = {
     "measurementId": "G-WGLXHL70KQ"
 }
 
-# firebaseConfig = {
-#     "apiKey": "AIzaSyCqwbsfRbgcoQMnnvz4cHQbjZA7QU8AfuI",
-#     "authDomain": "temp-encrypt-chat.firebaseapp.com",
-#     "databaseURL": "https://temp-encrypt-chat.firebaseio.com",
-#     "projectId": "temp-encrypt-chat",
-#     "storageBucket": "temp-encrypt-chat.appspot.com",
-#     "messagingSenderId": "712042090913",
-#     "appId": "1:712042090913:web:904aaf1f6a7818676d3be0"
-#   }
-
-# Parameters for currentUser:
-'''
-currentUser : {
-    'kind': '',
-    'localId': '',
-    'email': '',
-    'displayName': '',
-    'idToken': '',
-    'registered': True,
-    'refreshToken': '',
-    'expiresIn': '3600',
-}
-'''
-
 firebase = pyrebase.initialize_app(firebaseConfig)
 firebaseDB = firebase.database()
 firebaseAuth = firebase.auth()
-cipher = _aes.AESCipher('password')
+cipher = _aes.AESCipher(master_key)
 
 
 class Auth:
     currentUser = None
     userID = None
     CREATED_BY = ''
-    CHATROOM_ID = ''
+    CHATROOM_ID = 'chatroom_0'
 
     def create_user(self, email, password, name):
         # TODO remove name before pushing
@@ -70,7 +47,7 @@ class Auth:
 
         Variables.userData = data
 
-        firebaseDB.child('users').child(f"{name}").set(data)
+        firebaseDB.child('users').child(f"{email}").set(data)
 
         return self.currentUser
 
@@ -122,6 +99,7 @@ def create_chat_room(chatroom_id='', chatroom_key=''):
         firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(user_auth.userID).set(
             {
                 'name': user_auth.currentUser['displayName'],
+                'email': user_auth.currentUser['email'],
                 'joined_at': datetime.now().timestamp(),
                 'status': 'online'
             }
@@ -164,8 +142,9 @@ def join_chat_room(chatroom_id, chatroom_password):
                     user_auth.userID).set(
                     {
                         'name': user_auth.currentUser['displayName'],
+                        'email': user_auth.currentUser['email'],
                         'joined_at': datetime.now().timestamp(),
-                        'status': 'online',
+                        'status': 'online'
                     }
                 )
 

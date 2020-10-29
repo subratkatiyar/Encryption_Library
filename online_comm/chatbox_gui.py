@@ -1,19 +1,35 @@
 import threading
+import time
 import tkinter as tk
-from datetime import date, datetime
-from tkinter import ttk
 import tkinter.scrolledtext as tkscrolled
+from datetime import date, datetime
+from tkinter import messagebox
+from tkinter import ttk
 
 from fireDatabase import user_auth, firebaseDB
 from firebaseChats import fetch_msg, upload_msg
 from variables import Variables
-from tkinter import messagebox
+
+
+def fetch_attendees():
+    try:
+        return firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').get()
+
+    except Exception:
+        raise Exception('ERROR_GET_ATTENDEES')
 
 
 class ChatBox(tk.Frame):
     log = {}
     previous_log = {}
+    previous_attendee = ''
+    attendee = ''
+    MsgSendBtn = None
+
     # new_msg = ''
+
+    def getBindButton(self):
+        return self.MsgSendBtn, True
 
     def __init__(self, master, controller):
         tk.Frame.__init__(self, master)
@@ -26,58 +42,54 @@ class ChatBox(tk.Frame):
         self.Label1.configure(activebackground="#f9f9f9")
         self.Label1.configure(text='''Messages''')
 
-        # TODO replace text with scrolled text
-
-        # self.ChatScrollbar = tk.Scrollbar(self, orient='vertical')
-        # self.ChatTextBox = tk.Text(self)
-        # self.ChatTextBox.place(x=180, y=50, height=314, width=396)
-        # self.ChatTextBox.configure(background="white", font="TkTextFont")
-        # self.ChatTextBox.configure(selectbackground="blue", selectforeground="white")
-        # self.ChatTextBox.configure(state='disabled', wrap="word")
-        #
-        # self.ChatScrollbar.config(command=self.ChatTextBox.yview)
-        # self.ChatScrollbar.place(x=576, y=50, height=314, width=15)
+        self.ScrolledAttendeesTextBox = tkscrolled.ScrolledText(self, undo=True)
+        self.ScrolledAttendeesTextBox.place(x=0, y=50, height=385, width=171)
+        self.ScrolledAttendeesTextBox.configure(background="white", font="TkTextFont")
+        self.ScrolledAttendeesTextBox.configure(selectbackground="blue", selectforeground="white")
+        self.ScrolledAttendeesTextBox.configure(state=tk.DISABLED, wrap="word")
 
         self.ScrolledChatTextBox = tkscrolled.ScrolledText(self, undo=True)
         self.ScrolledChatTextBox.place(x=180, y=50, height=314, width=411)
         self.ScrolledChatTextBox.configure(background="white", font="TkTextFont")
         self.ScrolledChatTextBox.configure(selectbackground="blue", selectforeground="white")
-        self.ScrolledChatTextBox.configure(state='disabled', wrap="word")
+        self.ScrolledChatTextBox.configure(state=tk.NORMAL, wrap="word")
+        self.ScrolledChatTextBox.insert(tk.END, f"- - - - - - - - - - - - - - - - -  {date.today()} "
+                                                f"- - - - - - - - - - - - - - - - -\n")
+        self.ScrolledChatTextBox.configure(state=tk.DISABLED)
 
-        self.NewMsgScrollbar = tk.Scrollbar(self, orient='vertical')
-        self.NewMsgEntry = tk.Text(self)
-        self.NewMsgEntry.place(x=180, y=370, height=64, width=316)
-        self.NewMsgEntry.configure(background="white", font="TkTextFont", wrap="word")
-        self.NewMsgEntry.configure(selectbackground="blue", selectforeground="white")
-
-        self.NewMsgScrollbar.config(command=self.NewMsgEntry.yview)
-        self.NewMsgScrollbar.place(x=496, y=370, height=64, width=15)
+        self.ScrolledNewMsgEntry = tkscrolled.ScrolledText(self, undo=True)
+        # self.ScrolledNewMsgEntry.place(x=180, y=370, height=64, width=331)
+        self.ScrolledNewMsgEntry.place(x=180, y=370, height=64, width=306)
+        self.ScrolledNewMsgEntry.configure(background="white", font="TkTextFont")
+        self.ScrolledNewMsgEntry.configure(selectbackground="blue", selectforeground="white")
+        self.ScrolledNewMsgEntry.configure(wrap=tk.WORD)
+        self.ScrolledNewMsgEntry.focus_set()
 
         self.MsgSendBtn = tk.Button(self,
                                     command=lambda: self.sendMessage(
-                                        self.ScrolledChatTextBox, self.NewMsgEntry, master
-                                    ))
-        self.MsgSendBtn.place(x=520, y=380, height=41, width=71)
+                                        self.ScrolledChatTextBox, self.ScrolledNewMsgEntry, controller))
+        # self.MsgSendBtn.place(x=520, y=380, height=41, width=71)
+        self.MsgSendBtn.place(x=490, y=370, height=51, width=101)
         self.MsgSendBtn.configure(activebackground="#00e676")
         self.MsgSendBtn.configure(background="#00e676")
         self.MsgSendBtn.configure(text='''Send''')
 
-        Variables.receive_thread = threading.Thread(target=self.receiveMessage, args=(self.ScrolledChatTextBox,))
-        Variables.receive_thread.start()
-
         self.Label2 = tk.Label(self)
-        self.Label2.place(relx=0.067, rely=0.022, height=21, width=70)
+        self.Label2.place(x=40, y=10, height=21, width=70)
         self.Label2.configure(text='''Attendees''')
 
-        self.AttendeesScrollbar = tk.Scrollbar(self, orient='vertical')
-        self.AttendeesTextBox = tk.Text(self)
-        self.AttendeesTextBox.place(x=0, y=50, height=394, width=156)
-        self.AttendeesTextBox.configure(background="white", font="TkTextFont")
-        self.AttendeesTextBox.configure(selectbackground="blue", selectforeground="white")
-        self.AttendeesTextBox.configure(state='disabled', wrap="word")
+        self.Label3 = tk.Label(self)
+        self.Label3.place(x=490, y=420, height=21, width=104)
+        self.Label3.configure(activebackground="#f9f9f9")
+        self.Label3.configure(font="-family {Ubuntu Mono} -size 8")
+        self.Label3.configure(text='''[Ctrl+Enter to send]''')
 
-        self.AttendeesScrollbar.config(command=self.AttendeesTextBox.yview)
-        self.AttendeesScrollbar.place(x=156, y=50, height=394, width=15)
+        # Initialize threads
+        Variables.receive_thread = threading.Thread(target=self.receiveMessage, args=(self.ScrolledChatTextBox,))
+        Variables.getAttendees_thread = threading.Thread(target=self.getAttendees,
+                                                         args=(self.ScrolledAttendeesTextBox,))
+
+        Variables.getAttendees_thread.daemon = True     # TODO important for getAttendees_thread to join()
 
     def menuBar(self, master):
         self.doNotUse()
@@ -102,29 +114,33 @@ class ChatBox(tk.Frame):
 
         return menubar
 
-    def sendMessage(self, chats_box, msg_entry, mst):
+    def sendMessage(self, chats_box, msg_entry, cont):
         self.doNotUse()
         msg = msg_entry.get("1.0", 'end-1c')
+        msg_entry.delete('1.0', tk.END)
 
         if msg == 'q' or msg == 'Q':
-            firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
-                user_auth.userID).remove()
-            # firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').remove()
-            Variables.threadFlag = True
-            Variables.receive_thread.join()
-            mst.destroy()
+            cont.on_closing(del_temp=False)
+        elif msg == '':
+            pass
+        else:
+            _time = f"{datetime.now().time().strftime('%H:%M')}"
 
-        time = f"{date.today()}_{datetime.now().time().strftime('%H:%M:%S')}"
+            try:
+                chats_box.configure(state=tk.NORMAL)
+                chats_box.insert(tk.END, f"You:  {msg}\n")
+                chats_box.configure(state=tk.DISABLED)
+                upload_msg(msg)
+            except Exception as e:
+                e = str(e)
 
-        try:
-            chats_box.insert(tk.END, f" You:  {msg}")
-            msg_entry.delete('1.0', tk.END)
-            upload_msg(msg)
-        except Exception as e:
-            e = str(e)
-            # chats_box.delete(tk.END - 1, tk.END)
-            if e.find('ERROR_SEND_MSG') != -1:
-                messagebox.showerror('Message', "Error sending message.\nCheck your internet.  ")
+                length = len(f"You:  {msg}\n") + 1
+                chats_box.configure(state=tk.NORMAL)
+                chats_box.delete(f'end-{length}c', tk.END)
+                chats_box.configure(state=tk.DISABLED)
+
+                if e.find('ERROR_SEND_MSG') != -1:
+                    messagebox.showerror('Message', "Error sending message.\nCheck your internet.  ")
 
     def receiveMessage(self, chats_box):
         while True:
@@ -141,7 +157,34 @@ class ChatBox(tk.Frame):
                 self.previous_log = self.log
 
                 if Variables.current_user['displayName'] != self.log['user'] and self.log['user'] != "dummy":
-                    chats_box.insert(tk.END, f" {self.log['user']}:  {self.log['msg']}")
+                    chats_box.configure(state=tk.NORMAL)
+                    chats_box.insert(tk.END, f"{self.log['user']}:  {self.log['msg']}\n")
+                    chats_box.configure(state=tk.DISABLED)
+        print('receiveMessage thread broken')
 
     def doNotUse(self):
         pass
+
+    def getAttendees(self, attendees_box):
+        while True:
+            if Variables.threadFlag:
+                break
+
+            all_attendees = firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').get()
+
+            self.attendee = ''
+            for temp in all_attendees.each():
+                if temp.val()['name'] != 'dummyName' and Variables.threadFlag is False:
+                    self.attendee = self.attendee + f"{temp.val()['name']}\n{temp.val()['email']}\n" \
+                                                    f"+++ {temp.val()['status']} +++ \n\n"
+
+            if self.previous_attendee != self.attendee:
+                self.previous_attendee = self.attendee
+
+                attendees_box.configure(state=tk.NORMAL)
+                attendees_box.delete('1.0', tk.END)
+
+                attendees_box.insert(tk.END, self.attendee)
+                attendees_box.configure(state=tk.DISABLED)
+            time.sleep(1)
+        print('getAttendees thread broken\n')

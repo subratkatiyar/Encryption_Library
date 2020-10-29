@@ -13,9 +13,10 @@ currentUser : {
 
 
 class Variables:
-    # current_user = None
     threadFlag = False
     receive_thread = None
+    getAttendees_thread = None
+
     storeEmail = None
     storeUserID = None
     storeName = None

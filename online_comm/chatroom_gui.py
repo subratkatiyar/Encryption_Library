@@ -13,8 +13,13 @@ CHATROOM GUI
 
 class ChatroomGUI(tk.Frame):
     def menuBar(self, master):
+        self.doNotUse()
         menubar = tk.Menu(master, font="TkMenuFont")
         return menubar
+
+    def getBindButton(self):
+        self.doNotUse()
+        return None, False
 
     def __init__(self, master, controller):
         tk.Frame.__init__(self, master)

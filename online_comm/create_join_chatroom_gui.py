@@ -12,10 +12,15 @@ from variables import Variables
 
 class CreateChatroomGUI(tk.Frame):
     # chat_id = None
+    create_room_btn = None
 
     def menuBar(self, master):
+        self.doNotUse()
         menubar = tk.Menu(master, font="TkMenuFont")
         return menubar
+
+    def getBindButton(self):
+        return self.create_room_btn, False
 
     def __init__(self, master, controller):
         tk.Frame.__init__(self, master)
@@ -94,10 +99,15 @@ class CreateChatroomGUI(tk.Frame):
             try:
                 pyperclip.copy(str(_id_entry.get()))
                 Variables.chatroomData = create_chat_room(_id_entry.get(), key)
+
+                Variables.receive_thread.start()
+                Variables.getAttendees_thread.start()
+
                 cont.show_frame(ChatBox)
 
             except Exception as e:
                 e = str(e)
+                print(e)
                 if e.find("CHATROOM_EXISTS") != -1:
                     messagebox.showerror('Error', 'Chatroom already exists')
                 elif e.find("ERROR_UPLOAD_DATA") != -1:
@@ -117,9 +127,15 @@ class CreateChatroomGUI(tk.Frame):
 
 
 class JoinChatroomGUI(tk.Frame):
+    join_room_btn = None
+
     def menuBar(self, master):
+        self.doNotUse()
         menubar = tk.Menu(master, font="TkMenuFont")
         return menubar
+
+    def getBindButton(self):
+        return self.join_room_btn, False
 
     def __init__(self, master, controller):
         tk.Frame.__init__(self, master)
@@ -201,6 +217,10 @@ class JoinChatroomGUI(tk.Frame):
         else:
             try:
                 Variables.chatroomData = join_chat_room(_id, key)
+
+                Variables.receive_thread.start()
+                Variables.getAttendees_thread.start()
+
                 cont.show_frame(ChatBox)
 
             except Exception as e:

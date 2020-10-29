@@ -15,7 +15,7 @@ def fetch_msg():
 
 
 def upload_msg(msg):
-    time = f"{date.today()}_{datetime.now().time().strftime('%H:%M:%S')}"
+    _time = f"{date.today()}_{datetime.now().time().strftime('%H:%M:%S')}"
     user_name = user_auth.currentUser['displayName']
 
     def random_char(y):
@@ -26,11 +26,11 @@ def upload_msg(msg):
             {
                 'msg': msg,
                 'user': user_name,
-                'time': time,
+                'time': _time,
             }
         )
         firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child(
-            f"{user_name}_{time}_{random_char(5)}").set(
+            f"{user_name}_{_time}_{random_char(5)}").set(
             {
                 'msg': msg,
                 'user': user_name,
