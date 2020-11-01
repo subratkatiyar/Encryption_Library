@@ -14,12 +14,19 @@ currentUser : {
 
 class Variables:
     threadFlag = False
-    receive_thread = None
+    firebaseReceive_thread = None
     getAttendees_thread = None
+    localRcv_thread = None
 
+    userExpiryTimeLeft = 0.0
+    current_status = 'ONLINE'
+
+    # text variables
     storeEmail = None
     storeUserID = None
     storeName = None
+    #
+
     current_user = {
         'kind': '',
         'localId': '',

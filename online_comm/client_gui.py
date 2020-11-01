@@ -5,6 +5,8 @@ from chatroom_gui import ChatroomGUI
 from fireDatabase import user_auth
 from variables import Variables
 
+from welcome_gui import WelcomeGUI
+
 
 class LoginGUI(tk.Frame):
     userLoginStat = False
@@ -12,8 +14,7 @@ class LoginGUI(tk.Frame):
     login_button = None
 
     def menuBar(self, master):
-        menubar = tk.Menu(master, font="TkMenuFont")
-        return menubar
+        return ""
 
     def getBindButton(self):
         return self.login_button, False
@@ -24,20 +25,19 @@ class LoginGUI(tk.Frame):
         Variables.storeEmail = tk.StringVar(master, value='')
 
         self.Frame1 = tk.Frame(self)
-        self.Frame1.place(relx=0.1, rely=0.089, relheight=0.478, relwidth=0.808)
-        self.Frame1.configure(relief='groove')
+        self.Frame1.place(x=60, y=80, height=215, width=485)
         self.Frame1.configure(borderwidth="2")
         self.Frame1.configure(relief="groove")
 
         self.email_label = tk.Label(self.Frame1)
-        self.email_label.place(relx=0.124, rely=0.186, height=21, width=109)
+        self.email_label.place(x=60, y=40, height=21, width=109)
         self.email_label.configure(activebackground="#f9f9f9")
         self.email_label.configure(justify='left')
         self.email_label.configure(text='Email')
         # self.email_label.pack()
 
         self.email_login_entry = tk.Entry(self.Frame1, textvariable=Variables.storeEmail)
-        self.email_login_entry.place(relx=0.412, rely=0.14, height=33, relwidth=0.507)
+        self.email_login_entry.place(x=200, y=30, height=33, width=246)
         self.email_login_entry.configure(background="white")
         self.email_login_entry.configure(font="TkFixedFont")
         self.email_login_entry.configure(selectbackground="blue")
@@ -46,14 +46,14 @@ class LoginGUI(tk.Frame):
         self.email_login_entry.focus()
 
         self.pass_label = tk.Label(self.Frame1)
-        self.pass_label.place(relx=0.144, rely=0.419, height=21, width=109)
+        self.pass_label.place(x=70, y=90, height=21, width=109)
         self.pass_label.configure(activebackground="#f9f9f9")
         self.pass_label.configure(text='''Password''')
         # self.pass_label.pack()
 
         self.password = tk.StringVar(self, value='')
         self.pass_login_entry = tk.Entry(self.Frame1, textvariable=self.password)
-        self.pass_login_entry.place(relx=0.412, rely=0.372, height=33, relwidth=0.507)
+        self.pass_login_entry.place(x=200, y=80, height=33, width=246)
         self.pass_login_entry.configure(show="*", background="white")
         self.pass_login_entry.configure(font="TkFixedFont")
         self.pass_login_entry.configure(selectbackground="blue")
@@ -66,15 +66,13 @@ class LoginGUI(tk.Frame):
                                           self.pass_login_entry.get(),
                                           controller
                                       ))
-        self.login_button.place(relx=0.412, rely=0.744, height=31, width=71)
+        self.login_button.place(x=200, y=160, height=31, width=71)
         self.login_button.configure(activebackground="#f9f9f9")
         self.login_button.configure(text='''Login''')
         # self.login_button.pack(pady=(20, 0))
 
-        self.bind('<Return>', lambda event=None: self.login_button.invoke())
-
         self.Label1 = tk.Label(self)
-        self.Label1.place(relx=0.317, rely=0.622, height=21, width=219)
+        self.Label1.place(x=190, y=320, height=21, width=219)
         self.Label1.configure(activebackground="#f9f9f9")
         self.Label1.configure(text='''Don't have an account?''')
         # self.Label1.pack(pady=(50, 0))
@@ -82,10 +80,17 @@ class LoginGUI(tk.Frame):
         self.create_user_button = tk.Button(self,
                                             command=lambda: self.storeEmailAndSwitch(
                                                 self.email_login_entry.get(), controller))
-        self.create_user_button.place(relx=0.433, rely=0.689, height=31, width=71)
+        self.create_user_button.place(x=260, y=350, height=31, width=71)
         self.create_user_button.configure(activebackground="#f9f9f9")
         self.create_user_button.configure(text='''Create''')
         # self.create_user_button.pack()
+
+        self.backBtn = tk.Button(self, command=lambda: controller.show_frame(WelcomeGUI))
+        # self.backBtn.place(x=30, y=310, height=31, width=71, bordermode='ignore')
+        self.backBtn.place(x=20, y=10, height=31, width=71, bordermode='ignore')
+        self.backBtn.configure(activebackground="#f6685e")
+        self.backBtn.configure(background="#f6685e")
+        self.backBtn.configure(text='''Back''')
 
     def loginUser(self, email, psw, cont):
         if email == '':
@@ -113,6 +118,7 @@ class LoginGUI(tk.Frame):
             messagebox.showinfo('Success', 'Login successful')
 
             self.password.set('')
+            Variables.userExpiryTimeLeft = int(user_auth.currentUser['expiresIn'])/60
             Variables.storeUserID.set(str(user_auth.userID))
             Variables.storeEmail.set(email)
             Variables.storeName.set(str(user_auth.currentUser['displayName']))
@@ -137,8 +143,7 @@ class SignupGUI(tk.Frame):
     signup_button = None
 
     def menuBar(self, master):
-        menubar = tk.Menu(master, font="TkMenuFont")
-        return menubar
+        return ""
 
     def getBindButton(self):
         return self.signup_button, False
@@ -149,13 +154,13 @@ class SignupGUI(tk.Frame):
         # Variables.email = tk.StringVar(self, value='')
 
         self.name_label = tk.Label(self)
-        self.name_label.place(relx=0.233, rely=0.2, height=20, width=70)
+        self.name_label.place(x=140, y=90, height=20, width=70)
         self.name_label.configure(activebackground="#f9f9f9")
         self.name_label.configure(text='''Name''')
         # self.name_label.pack()
 
         self.name_signup_entry = tk.Entry(self)
-        self.name_signup_entry.place(relx=0.383, rely=0.178, height=33, relwidth=0.427)
+        self.name_signup_entry.place(x=230, y=80, height=33, width=256)
         self.name_signup_entry.configure(background="white")
         self.name_signup_entry.configure(font="TkFixedFont")
         self.name_signup_entry.configure(selectbackground="blue")
@@ -164,13 +169,13 @@ class SignupGUI(tk.Frame):
         self.name_signup_entry.focus()
 
         self.email_label = tk.Label(self)
-        self.email_label.place(relx=0.25, rely=0.311, height=20, width=50)
+        self.email_label.place(x=150, y=140, height=20, width=50)
         self.email_label.configure(activebackground="#f9f9f9")
         self.email_label.configure(text='''Email''')
         # self.email_label.pack()
 
         self.email_signup_entry = tk.Entry(self, textvariable=Variables.storeEmail)
-        self.email_signup_entry.place(relx=0.383, rely=0.289, height=33, relwidth=0.427)
+        self.email_signup_entry.place(x=230, y=130, height=33, width=256)
         self.email_signup_entry.configure(background="white")
         self.email_signup_entry.configure(font="TkFixedFont")
         self.email_signup_entry.configure(selectbackground="blue")
@@ -178,14 +183,14 @@ class SignupGUI(tk.Frame):
         # self.email_signup_entry.pack()
 
         self.pass_label = tk.Label(self)
-        self.pass_label.place(relx=0.2, rely=0.422, height=20, width=80)
+        self.pass_label.place(x=120, y=190, height=20, width=80)
         self.pass_label.configure(activebackground="#f9f9f9")
         self.pass_label.configure(text='''Password''')
         # self.pass_label.pack()
 
         self.password = tk.StringVar(self, value='')
         self.pass_signup_entry = tk.Entry(self, textvariable=self.password)
-        self.pass_signup_entry.place(relx=0.383, rely=0.4, height=33, relwidth=0.427)
+        self.pass_signup_entry.place(x=230, y=180, height=33, width=256)
         self.pass_signup_entry.configure(show="*", background="white")
         self.pass_signup_entry.configure(font="TkFixedFont")
         self.pass_signup_entry.configure(selectbackground="blue")
@@ -193,14 +198,14 @@ class SignupGUI(tk.Frame):
         # self.pass_signup_entry.pack()
 
         self.re_pass_label = tk.Label(self)
-        self.re_pass_label.place(relx=0.117, rely=0.533, height=19, width=132)
+        self.re_pass_label.place(x=70, y=240, height=19, width=132)
         self.re_pass_label.configure(activebackground="#f9f9f9")
         self.re_pass_label.configure(text='''Re-enter Password''')
         # self.re_pass_label.pack()
 
         self.re_password = tk.StringVar(self, value='')
         self.re_pass_signup_entry = tk.Entry(self, textvariable=self.re_password)
-        self.re_pass_signup_entry.place(relx=0.383, rely=0.511, height=33, relwidth=0.427)
+        self.re_pass_signup_entry.place(x=230, y=230, height=33, width=256)
         self.re_pass_signup_entry.configure(show="*", background="white")
         self.re_pass_signup_entry.configure(font="TkFixedFont")
         self.re_pass_signup_entry.configure(selectbackground="blue")
@@ -208,7 +213,7 @@ class SignupGUI(tk.Frame):
         # self.re_pass_signup_entry.pack()
 
         self.signup_button = tk.Button(self)
-        self.signup_button.place(relx=0.433, rely=0.640, height=31, width=71)
+        self.signup_button.place(x=260, y=280, height=31, width=71)
         self.signup_button.configure(activebackground="#f9f9f9")
         self.signup_button.configure(text='''Signup''',
                                      command=lambda: self.signupUser(
@@ -219,7 +224,7 @@ class SignupGUI(tk.Frame):
         # self.signup_button.pack()
 
         self.back_button = tk.Button(self, command=lambda: self.goBack(self.email_signup_entry.get(), controller))
-        self.back_button.place(relx=0.067, rely=0.067, height=31, width=71)
+        self.back_button.place(x=20, y=10, height=31, width=71)
         self.back_button.configure(activebackground="#f9f9f9")
         self.back_button.configure(text='''Back''')
         # self.back_button.pack()

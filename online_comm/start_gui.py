@@ -8,11 +8,14 @@ from client_gui import LoginGUI, SignupGUI
 from create_join_chatroom_gui import CreateChatroomGUI, JoinChatroomGUI
 from fireDatabase import firebaseDB, user_auth
 from variables import Variables
+from welcome_gui import WelcomeGUI
+from local_network_gui import LocalNetworkGUI, LocalChatBoxGUI
+from file_encrypt_gui import FileEncryptGUI
 
 
-# def vp_start_gui():
-#     start = StartGUI()
-#     start.mainloop()
+def vp_start_gui():
+    start = StartApp()
+    start.mainloop()
 
 
 class StartApp(tk.Tk):
@@ -40,7 +43,8 @@ class StartApp(tk.Tk):
 
         # iterating through a tuple consisting
         # of the different page layouts
-        _allFrames = (LoginGUI, SignupGUI, ChatroomGUI, CreateChatroomGUI, JoinChatroomGUI, ChatBox)
+        _allFrames = (WelcomeGUI, LoginGUI, SignupGUI, ChatroomGUI, CreateChatroomGUI, JoinChatroomGUI, ChatBox,
+                      LocalChatBoxGUI, LocalNetworkGUI, FileEncryptGUI)
         for F in _allFrames:
             frame = F(container, self)
 
@@ -48,13 +52,14 @@ class StartApp(tk.Tk):
 
             frame.grid(row=0, column=0, sticky="nsew")
 
-        self.show_frame(LoginGUI)
+        self.show_frame(WelcomeGUI)
 
     def show_frame(self, cont):
         frame = self.frames[cont]
 
         menubar = frame.menuBar(self)
-        self.configure(menu=menubar)
+        if menubar is not None:
+            self.configure(menu=menubar)
 
         button, is_send = frame.getBindButton()
         if button is not None:
@@ -73,25 +78,23 @@ class StartApp(tk.Tk):
     def on_closing(self, del_temp=True):
         if messagebox.askokcancel("Quit", "Do you want to quit?"):
             self.destroy()
-            if user_auth.CHATROOM_ID != 'chatroom_0':
+            if user_auth.CHATROOM_NAME != 'chatroom_0':
                 if del_temp:
-                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
                         user_auth.userID).update({'status': 'offline'})
-                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').remove()
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child('temp').remove()
                 else:
-                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
                         user_auth.userID).update({'status': 'offline'})
 
                 Variables.threadFlag = True
-                Variables.receive_thread.join()
+                Variables.firebaseReceive_thread.join()
                 print('msg joined')
                 # Variables.getAttendees_thread.join()        # TODO not joined
-                print('attendee joined')
                 print('ended')
                 sys.exit()
+                # os._exit(0)
 
 
 if __name__ == '__main__':
-    # vp_start_gui()
-    start = StartApp()
-    start.mainloop()
+    vp_start_gui()

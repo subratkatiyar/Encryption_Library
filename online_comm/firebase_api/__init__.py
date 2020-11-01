@@ -1,0 +1,1 @@
+from .firebase_api import initialize_app

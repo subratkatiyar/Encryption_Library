@@ -1,11 +1,10 @@
 from datetime import datetime
 from random import randint
 
-import pyrebase
+from firebase_api import firebase_api
 
-import aes_implementation as _aes
+from aes_implementation import cipher
 from variables import Variables
-from master_key import master_key
 
 # After storageBucket are not necessary
 firebaseConfig = {
@@ -19,17 +18,17 @@ firebaseConfig = {
     "measurementId": "G-WGLXHL70KQ"
 }
 
-firebase = pyrebase.initialize_app(firebaseConfig)
+firebase = firebase_api.initialize_app(firebaseConfig)
 firebaseDB = firebase.database()
 firebaseAuth = firebase.auth()
-cipher = _aes.AESCipher(master_key)
+# cipher = _aes.AESCipher("password")
 
 
 class Auth:
     currentUser = None
     userID = None
-    CREATED_BY = ''
-    CHATROOM_ID = 'chatroom_0'
+    # CREATED_BY = ''
+    CHATROOM_NAME = 'chatroom_0'
 
     def create_user(self, email, password, name):
         # TODO remove name before pushing
@@ -84,24 +83,24 @@ def create_chat_room(chatroom_id='', chatroom_key=''):
         "created_name": user_auth.currentUser['displayName']
     }
 
-    user_auth.CHATROOM_ID = f'chatroom_{length}'
+    user_auth.CHATROOM_NAME = f'chatroom_{length}'
 
     try:
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child("details").set(data)
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child("details").set(data)
 
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').set(
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child('temp').set(
             {
                 'msg': "",
                 'user': "dummy",
             }
         )
 
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(user_auth.userID).set(
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(user_auth.userID).set(
             {
                 'name': user_auth.currentUser['displayName'],
                 'email': user_auth.currentUser['email'],
                 'joined_at': datetime.now().timestamp(),
-                'status': 'online'
+                'status': 'ONLINE'
             }
         )
 
@@ -112,7 +111,7 @@ def create_chat_room(chatroom_id='', chatroom_key=''):
 
 
 def join_chat_room(chatroom_id, chatroom_password):
-    flag = 0
+    _flag = 0
 
     # Function
     def get_password(_room):
@@ -130,39 +129,40 @@ def join_chat_room(chatroom_id, chatroom_password):
 
     for room in all_rooms.each():
         if chatroom_id == room.val()['details']['chatroomID']:
-            flag = 1
-            print(flag)
+            _flag = 1
 
-            user_auth.CREATED_BY = room.val()['details']['created_name']
+            # user_auth.CREATED_BY = room.val()['details']['created_name']
             get_password(_room=room)
-            user_auth.CHATROOM_ID = f"{room.key()}"
+            user_auth.CHATROOM_NAME = f"{room.key()}"
 
             try:
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('attendees').child(
+                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
                     user_auth.userID).set(
                     {
                         'name': user_auth.currentUser['displayName'],
                         'email': user_auth.currentUser['email'],
                         'joined_at': datetime.now().timestamp(),
-                        'status': 'online'
+                        'status': 'ONLINE'
                     }
                 )
 
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').set(
+                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child('temp').set(
                     {
                         'msg': "",
                         'user': "dummy",
                     }
                 )
 
-                data = {
-                    'chatroomID': user_auth.CHATROOM_ID,
-                    'created_name': user_auth.CREATED_BY,
-                    'created_userID': room.val()['details']['created_userID']
-                }
+                data = firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('details').get().val()
+
+                # data = {
+                #     'chatroomID': user_auth.CHATROOM_ID,
+                #     'created_name': user_auth.CREATED_BY,
+                #     'created_userID': room.val()['details']['created_userID']
+                # }
                 return data
             except Exception:
                 raise Exception('ERROR_JOINING_CHATROOM')
 
-    if flag == 0:
+    if _flag == 0:
         raise Exception('CHATROOM_NOT_EXIST')

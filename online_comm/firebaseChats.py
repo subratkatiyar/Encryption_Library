@@ -7,7 +7,7 @@ from fireDatabase import firebaseDB, user_auth
 
 def fetch_msg():
     try:
-        return firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child(
+        return firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child(
             'chats').child('temp').get()
 
     except Exception:
@@ -19,21 +19,24 @@ def upload_msg(msg):
     user_name = user_auth.currentUser['displayName']
 
     def random_char(y):
-        return ''.join(random.choice(string.ascii_letters) for x in range(y))
+        return ''.join(random.choice(string.ascii_letters) for _ in range(y))
 
     try:
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child('temp').set(
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child('temp').set(
             {
                 'msg': msg,
                 'user': user_name,
                 'time': _time,
+                'date': f"{date.today()}",
             }
         )
-        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_ID).child('chats').child(
+        firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child(
             f"{user_name}_{_time}_{random_char(5)}").set(
             {
                 'msg': msg,
                 'user': user_name,
+                'time': _time,
+                'date': f"{date.today()}",
             }
         )
 

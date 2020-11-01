@@ -1,8 +1,11 @@
 # Byte-compiled / optimized / DLL files
 __pycache__/
-communication/__pycache__/
 online_comm/__pycache__/
-encryption/__pycache__/
+online_comm/pyrebase/__pycache__/
+
+.extras/
+.online_comm/aes_implementation.py
+
 *.py[cod]
 *$py.class
 .idea/
