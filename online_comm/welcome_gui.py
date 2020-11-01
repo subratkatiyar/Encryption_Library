@@ -89,7 +89,7 @@ class WelcomeGUI(tk.Frame):
 
     def localNetwork(self, cont):
         self.doNotUse()
-        from client import LocalNetworkGUI
+        from local_network_gui import LocalNetworkGUI
         cont.show_frame(LocalNetworkGUI)
 
     def fileEncrypt(self, cont):

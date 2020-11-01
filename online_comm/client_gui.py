@@ -101,7 +101,7 @@ class LoginGUI(tk.Frame):
             messagebox.showerror('Error', 'Password not provided')
         else:
             try:
-                Variables.current_user = user_auth.login_user(email, psw)
+                user_auth.login_user(email, psw)
 
             except Exception as e:
                 x, y = e.args
@@ -113,7 +113,7 @@ class LoginGUI(tk.Frame):
                 elif y.find("INVALID_PASSWORD") != -1:
                     messagebox.showerror('Error Login', 'Invalid Password')
 
-        if Variables.current_user['localId'] != '':
+        if user_auth.currentUser['localId'] != '':
             self.userLoginStat = True
             messagebox.showinfo('Success', 'Login successful')
 
@@ -138,7 +138,6 @@ SIGNUP PAGE GUI
 
 
 class SignupGUI(tk.Frame):
-    userSignupStat = False
     password = None
     signup_button = None
 
@@ -230,12 +229,15 @@ class SignupGUI(tk.Frame):
         # self.back_button.pack()
 
     def goBack(self, email, cont):
-        self.userSignupStat = False
         Variables.storeEmail.set(email)
 
         cont.show_frame(LoginGUI)
 
     def signupUser(self, name, email, password, re_password, cont):
+        str_email = email
+        str_pass = password
+        str_name = name
+
         if name == '':
             messagebox.showwarning('Warning', 'Name not provided')
         elif email == '':
@@ -246,18 +248,17 @@ class SignupGUI(tk.Frame):
             messagebox.showwarning('Short password', 'Password should be at least 6 characters long')
         elif password == re_password:
             try:
-                Variables.current_user = user_auth.create_user(email, password, name)
+                user_auth.create_user(str_email, str_pass, str_name)
             except Exception as e:
                 x, y = e.args
                 if y.find("EMAIL_EXISTS") != -1:
                     messagebox.showerror('Error Signup', 'User already exists.')
-                else:
-                    messagebox.showerror('Error Signup', 'Invalid Details')
-        else:
+                # else:
+                #     messagebox.showerror('Error Signup', 'Invalid Details')
+        elif password != re_password:
             messagebox.showerror('Error', 'Password do not match!')
 
-        if Variables.current_user['localId'] != '':
-            self.userSignupStat = True
+        if user_auth.currentUser['localId'] != '':
             messagebox.showinfo('Success', 'Signup is successful')
 
             self.password.set('')
@@ -268,5 +269,3 @@ class SignupGUI(tk.Frame):
             Variables.storeName.set(str(user_auth.currentUser['displayName']))
 
             cont.show_frame(ChatroomGUI)
-        else:
-            self.userSignupStat = False
