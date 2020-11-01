@@ -164,7 +164,7 @@ class ChatBox(tk.Frame):
             if self.previous_log != self.log and self.log is not None:
                 self.previous_log = self.log
 
-                if Variables.current_user['displayName'] != self.log['user'] and self.log['user'] != "dummy":
+                if user_auth.currentUser['displayName'] != self.log['user'] and self.log['user'] != "dummy":
                     # TODO Decrypted the received message
                     decrypt_msg = cipher.decrypt(bytes.fromhex(self.log['msg']))
 

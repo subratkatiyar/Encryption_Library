@@ -102,7 +102,7 @@ class ChatroomGUI(tk.Frame):
     def signOutUser(self, cont):
         self.doNotUse()
         from client_gui import LoginGUI
-        if messagebox.askokcancel("Confirm leave", "Are you sure you want to leave"):
+        if messagebox.askokcancel("Confirm Sign out", "Are you sure you want to sign out"):
             firebaseAuth.current_user = None
             user_auth.currentUser = None
             user_auth.userID = None

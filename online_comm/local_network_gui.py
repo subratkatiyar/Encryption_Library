@@ -112,7 +112,7 @@ class LocalChatBoxGUI(tk.Frame):
         self.doNotUse()
         menubar = tk.Menu(master, font="TkMenuFont")
         menubar.add_command(label=f"User: {storeName}  ")
-        menubar.add_command(label="Leave", command=lambda: self.leaveLocalChat())
+        menubar.add_command(label="Leave", command=self.leaveLocalChat)
 
         return menubar
 
@@ -152,11 +152,11 @@ class LocalChatBoxGUI(tk.Frame):
         Variables.localRcv_thread.start()
 
     def leaveLocalChat(self):
-        try:
-            self.msg = "!DISCONNECT"
-            self.sendMessage()
-        except:
-            print('[LEAVING] Server is not running. Cannot disconnect.')
+        # try:
+        #     self.msg = "!DISCONNECT"
+        #     self.sendMessage()
+        # except:
+        #     print('[LEAVING] Server is not running. Cannot disconnect.')
 
         self.cont.show_frame(LocalNetworkGUI)
 
