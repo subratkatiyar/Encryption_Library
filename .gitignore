@@ -3,8 +3,10 @@ __pycache__/
 online_comm/__pycache__/
 online_comm/pyrebase/__pycache__/
 
-.extras/
-.online_comm/aes_implementation.py
+extras/
+online_comm/aes_implementation.py
+online_comm/aes_secure_encrypt.py
+bfg-1.13.0.jar
 
 *.py[cod]
 *$py.class
