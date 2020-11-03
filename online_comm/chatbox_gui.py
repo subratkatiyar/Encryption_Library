@@ -189,22 +189,22 @@ class ChatBox(tk.Frame):
             self.attendee = ''
             for usr in all_attendees.each():
                 is_admin = False
-                temp = usr.val()
 
-                if usr.key() == admin:
-                    is_admin = True
-                    attendee_name_str = f"{temp['name']} (Admin)"
-                if usr.key() == user_auth.userID:
-                    if is_admin:
-                        attendee_name_str = f"{temp['name']} (Admin)(You)"
-                    else:
-                        attendee_name_str = f"{temp['name']} (You)"
-                elif usr.key() != admin:
-                    attendee_name_str = f"{temp['name']}"
+                if "name" in usr.val():
+                    if usr.key() == admin:
+                        is_admin = True
+                        attendee_name_str = f"{usr.val()['name']} (Admin)"
+                    if usr.key() == user_auth.userID:
+                        if is_admin:
+                            attendee_name_str = f"{usr.val()['name']} (Admin)(You)"
+                        else:
+                            attendee_name_str = f"{usr.val()['name']} (You)"
+                    elif usr.key() != admin:
+                        attendee_name_str = f"{usr.val()['name']}"
 
-                if temp['name'] != 'dummyName' and Variables.threadFlag is False:
-                    user_str = f"{attendee_name_str}\n{temp['email']}\n- - {temp['status']} - - \n\n"
-                    self.attendee = self.attendee + user_str
+                    if usr.val()['name'] != 'dummyName' and Variables.threadFlag is False:
+                        user_str = f"{attendee_name_str}\n{usr.val()['email']}\n- - {usr.val()['status']} - - \n\n"
+                        self.attendee = self.attendee + user_str
 
             if self.previous_attendee != self.attendee:
                 self.previous_attendee = self.attendee
@@ -225,6 +225,8 @@ class ChatBox(tk.Frame):
                 user_auth.userID).remove()
 
             self.cont.show_frame(ChatroomGUI)
+            self.ScrolledAttendeesTextBox.delete('1.0', tk.END)
+            self.ScrolledChatTextBox.delete('1.0', tk.END)
 
     def signOutUser(self):
         self.doNotUse()
@@ -238,6 +240,8 @@ class ChatBox(tk.Frame):
             user_auth.userID = None
 
             self.cont.show_frame(LoginGUI)
+            self.ScrolledAttendeesTextBox.delete('1.0', tk.END)
+            self.ScrolledChatTextBox.delete('1.0', tk.END)
 
     def displayProfile(self):
         self.doNotUse()
@@ -269,8 +273,13 @@ class ChatBox(tk.Frame):
 
         if user_auth.userID == created_user_id:
             if messagebox.askokcancel("Confirm delete", "Delete chatroom forever?"):
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).remove()
+                temp_chatroom_name = user_auth.CHATROOM_NAME
+                user_auth.CHATROOM_NAME = 'chatroom_0'
                 self.cont.show_frame(ChatroomGUI)
+
+                firebaseDB.child('chat_rooms').child(temp_chatroom_name).remove()
+                self.ScrolledAttendeesTextBox.delete('1.0', tk.END)
+                self.ScrolledChatTextBox.delete('1.0', tk.END)
 
         else:
             messagebox.showerror("Error", "Sorry! You are not the admin")

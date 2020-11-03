@@ -72,9 +72,10 @@ def create_chat_room(chatroom_id='', chatroom_key=''):
     all_rooms = firebaseDB.child('chat_rooms').get()
     if all_rooms is not None:
         for room in all_rooms.each():
-            length = length + 1
-            if chatroom_id == room.val()['details']['chatroomID']:
-                raise Exception('CHATROOM_EXISTS')
+            if "details" in room.val():
+                length = length + 1
+                if chatroom_id == room.val()['details']['chatroomID']:
+                    raise Exception('CHATROOM_EXISTS')
 
     data = {
         "chatroomID": chatroom_id,
@@ -127,42 +128,41 @@ def join_chat_room(chatroom_id, chatroom_password):
 
     all_rooms = firebaseDB.child('chat_rooms').get()
 
-    for room in all_rooms.each():
-        if chatroom_id == room.val()['details']['chatroomID']:
-            _flag = 1
+    if all_rooms is not None:
+        for room in all_rooms.each():
+            if chatroom_id == room.val()['details']['chatroomID']:
+                _flag = 1
+                get_password(_room=room)
+                user_auth.CHATROOM_NAME = f"{room.key()}"
 
-            # user_auth.CREATED_BY = room.val()['details']['created_name']
-            get_password(_room=room)
-            user_auth.CHATROOM_NAME = f"{room.key()}"
+                try:
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
+                        user_auth.userID).set(
+                        {
+                            'name': user_auth.currentUser['displayName'],
+                            'email': user_auth.currentUser['email'],
+                            'joined_at': datetime.now().timestamp(),
+                            'status': 'ONLINE'
+                        }
+                    )
 
-            try:
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
-                    user_auth.userID).set(
-                    {
-                        'name': user_auth.currentUser['displayName'],
-                        'email': user_auth.currentUser['email'],
-                        'joined_at': datetime.now().timestamp(),
-                        'status': 'ONLINE'
-                    }
-                )
+                    firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child('temp').set(
+                        {
+                            'msg': "",
+                            'user': "dummy",
+                        }
+                    )
 
-                firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('chats').child('temp').set(
-                    {
-                        'msg': "",
-                        'user': "dummy",
-                    }
-                )
+                    data = firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('details').get().val()
 
-                data = firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('details').get().val()
-
-                # data = {
-                #     'chatroomID': user_auth.CHATROOM_ID,
-                #     'created_name': user_auth.CREATED_BY,
-                #     'created_userID': room.val()['details']['created_userID']
-                # }
-                return data
-            except Exception:
-                raise Exception('ERROR_JOINING_CHATROOM')
+                    # data = {
+                    #     'chatroomID': user_auth.CHATROOM_ID,
+                    #     'created_name': user_auth.CREATED_BY,
+                    #     'created_userID': room.val()['details']['created_userID']
+                    # }
+                    return data
+                except Exception:
+                    raise Exception('ERROR_JOINING_CHATROOM')
 
     if _flag == 0:
         raise Exception('CHATROOM_NOT_EXIST')
