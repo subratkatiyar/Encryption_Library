@@ -216,6 +216,7 @@ class JoinChatroomGUI(tk.Frame):
         self.doNotUse()
         from chatroom_gui import ChatroomGUI
         cont.show_frame(ChatroomGUI)
+        self.pass_var.set("")
 
     def joinChatroom(self, _id, key, cont):
         self.doNotUse()

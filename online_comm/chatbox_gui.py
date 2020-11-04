@@ -221,10 +221,14 @@ class ChatBox(tk.Frame):
         from chatroom_gui import ChatroomGUI
 
         if messagebox.askokcancel("Confirm leave", "Are you sure you want to leave"):
-            firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
-                user_auth.userID).remove()
+            temp_chatroom_name = user_auth.CHATROOM_NAME
+            user_auth.CHATROOM_NAME = 'chatroom_0'
 
             self.cont.show_frame(ChatroomGUI)
+
+            firebaseDB.child('chat_rooms').child(temp_chatroom_name).child('attendees').child(
+                user_auth.userID).remove()
+
             self.ScrolledAttendeesTextBox.delete('1.0', tk.END)
             self.ScrolledChatTextBox.delete('1.0', tk.END)
 
@@ -232,6 +236,11 @@ class ChatBox(tk.Frame):
         self.doNotUse()
         from client_gui import LoginGUI
         if messagebox.askokcancel("Confirm Sign out", "Are you sure you want to\nSign Out"):
+
+            temp_chatroom_name = user_auth.CHATROOM_NAME
+            user_auth.CHATROOM_NAME = 'chatroom_0'
+            self.cont.show_frame(LoginGUI)
+            
             firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
                 user_auth.userID).update({'status': 'offline'})
 
@@ -239,7 +248,6 @@ class ChatBox(tk.Frame):
             user_auth.currentUser = None
             user_auth.userID = None
 
-            self.cont.show_frame(LoginGUI)
             self.ScrolledAttendeesTextBox.delete('1.0', tk.END)
             self.ScrolledChatTextBox.delete('1.0', tk.END)
 

@@ -253,12 +253,14 @@ class SignupGUI(tk.Frame):
                 x, y = e.args
                 if y.find("EMAIL_EXISTS") != -1:
                     messagebox.showerror('Error Signup', 'User already exists.')
+                elif y.find("USER_DATA_NOT_UPLOADED") != -1:
+                    messagebox.showerror('Error Signup', 'Error uploading data')
                 # else:
                 #     messagebox.showerror('Error Signup', 'Invalid Details')
         elif password != re_password:
             messagebox.showerror('Error', 'Password do not match!')
 
-        if user_auth.currentUser['localId'] != '':
+        if user_auth.currentUser is not None:
             messagebox.showinfo('Success', 'Signup is successful')
 
             self.password.set('')

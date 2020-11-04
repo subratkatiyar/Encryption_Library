@@ -41,12 +41,18 @@ class Auth:
             'userId': self.userID,
             'name': name,
             'email': self.currentUser['email'],
-            'profileIndex': randint(1, 7)
+            'profileIndex': randint(1, 7),
         }
 
         Variables.userData = data
 
-        firebaseDB.child('users').child(f"{email}").set(data)
+        try:
+            # TODO .com of email gives error uploading
+            # e.g.)  email.com.json - error
+            # e.g.) emailcom.json   - passed
+            firebaseDB.child('users').child(str(self.currentUser['email']).replace(".", "")).set(data)
+        except:
+            raise Exception('USER_DATA_NOT_UPLOADED')
 
         return self.currentUser
 
@@ -65,7 +71,7 @@ user_auth = Auth()
 
 
 def create_chat_room(chatroom_id='', chatroom_key=''):
-    length = 0
+    length = 1
 
     encrypted_chatroom_key = cipher.encrypt(chatroom_key)
 
@@ -130,7 +136,7 @@ def join_chat_room(chatroom_id, chatroom_password):
 
     if all_rooms is not None:
         for room in all_rooms.each():
-            if chatroom_id == room.val()['details']['chatroomID']:
+            if "details" in room.val() and chatroom_id == room.val()['details']['chatroomID']:
                 _flag = 1
                 get_password(_room=room)
                 user_auth.CHATROOM_NAME = f"{room.key()}"
