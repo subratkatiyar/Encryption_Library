@@ -240,8 +240,8 @@ class ChatBox(tk.Frame):
             temp_chatroom_name = user_auth.CHATROOM_NAME
             user_auth.CHATROOM_NAME = 'chatroom_0'
             self.cont.show_frame(LoginGUI)
-            
-            firebaseDB.child('chat_rooms').child(user_auth.CHATROOM_NAME).child('attendees').child(
+
+            firebaseDB.child('chat_rooms').child(temp_chatroom_name).child('attendees').child(
                 user_auth.userID).update({'status': 'offline'})
 
             firebaseAuth.current_user = None
